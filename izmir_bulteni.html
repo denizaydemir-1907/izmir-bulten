@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>İzmir Kentsel Dönüşüm Bülteni</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#1c1c1a;--paper:#f4efe5;--accent:#bf3a18;--mid:#8a7e6e;--light:#e5dfd2;--green:#255e3e;--blue:#1a3f6e;--brown:#6a4518;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--paper);color:var(--ink);font-family:'Source Serif 4',Georgia,serif;min-height:100vh;}
+
+  /* MASTHEAD */
+  .masthead{border-bottom:3px double var(--ink);padding:16px 28px 12px;display:flex;align-items:baseline;justify-content:space-between;gap:16px;}
+  .masthead-left{display:flex;flex-direction:column;gap:4px;}
+  .masthead-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(28px,5vw,50px);letter-spacing:3px;line-height:1;}
+  .masthead-title span{color:var(--accent);}
+  .masthead-sub{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--mid);}
+  .masthead-meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mid);text-align:right;line-height:1.8;}
+  .tagline{font-size:9.5px;letter-spacing:2.5px;text-transform:uppercase;color:var(--mid);border-top:1px solid var(--mid);border-bottom:1px solid var(--mid);padding:4px 28px;font-family:'JetBrains Mono',monospace;}
+
+  .container{max-width:960px;margin:0 auto;padding:22px 28px 52px;}
+
+  /* API KEY EKRANI */
+  .setup-screen{display:none;background:var(--ink);padding:32px;margin-bottom:28px;}
+  .setup-screen.visible{display:block;}
+  .setup-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--accent);margin-bottom:8px;}
+  .setup-desc{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,0.5);line-height:1.7;margin-bottom:18px;}
+  .setup-desc a{color:var(--accent);text-decoration:none;}
+  .setup-row{display:flex;gap:12px;align-items:stretch;}
+  .setup-input{flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);color:#d0c8bb;font-family:'JetBrains Mono',monospace;font-size:12px;padding:10px 14px;outline:none;border-radius:2px;}
+  .setup-input:focus{border-color:rgba(255,255,255,0.4);}
+  .setup-input::placeholder{color:rgba(255,255,255,0.2);}
+  .setup-btn{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;background:var(--accent);color:white;border:none;padding:10px 22px;cursor:pointer;white-space:nowrap;}
+  .setup-btn:hover{background:#9a2e10;}
+  .setup-note{font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(255,255,255,0.3);margin-top:12px;}
+
+  /* KONTROL */
+  .control-bar{display:flex;align-items:center;gap:16px;padding:16px 0;border-bottom:1px solid var(--light);margin-bottom:20px;flex-wrap:wrap;}
+  .btn{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;border:none;padding:11px 28px;cursor:pointer;transition:background .15s,transform .1s;white-space:nowrap;display:inline-flex;align-items:center;gap:8px;}
+  .btn:active{transform:scale(0.98);}
+  .btn-primary{background:var(--ink);color:var(--paper);}
+  .btn-primary:hover{background:var(--accent);}
+  .btn-primary:disabled{background:var(--mid);cursor:not-allowed;}
+  .btn-ghost{background:transparent;color:var(--mid);border:1px solid var(--light);font-size:12px;padding:8px 14px;letter-spacing:1px;}
+  .btn-ghost:hover{border-color:var(--mid);color:var(--ink);}
+
+  /* DURUM */
+  .status-bar{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mid);min-height:18px;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+  .spinner{display:inline-block;width:11px;height:11px;border:2px solid var(--light);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* HATA */
+  .error-box{border:2px solid var(--accent);padding:14px 18px;color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.7;margin-bottom:18px;display:none;}
+  .error-box.visible{display:block;}
+
+  /* HABERLER */
+  .edition-header{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:10px;margin-bottom:20px;}
+  .edition-date{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:2px;color:var(--accent);}
+  .edition-count{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mid);}
+  .summary-box{background:var(--ink);color:var(--paper);padding:16px 20px;margin-bottom:26px;}
+  .summary-box h3{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:2px;color:var(--accent);margin-bottom:7px;}
+  .summary-box p{font-size:13px;font-weight:300;line-height:1.75;color:#cec6b8;}
+  .category{margin-bottom:28px;}
+  .cat-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--paper);padding:3px 9px;display:inline-block;margin-bottom:12px;}
+  .c-donus{background:var(--accent);}.c-imar{background:var(--brown);}.c-mevzuat{background:#4a2a6e;}.c-kurum{background:#3a3a30;}.c-altyapi{background:var(--green);}.c-sehir{background:var(--blue);}
+  .news-list{display:flex;flex-direction:column;}
+  .news-item{display:grid;grid-template-columns:3px 1fr;gap:0 13px;padding:11px 0;border-bottom:1px solid var(--light);animation:fadeIn .35s ease both;}
+  .news-item:last-child{border-bottom:none;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;}}
+  .b-urgent{background:var(--accent);}.b-normal{background:var(--mid);}.b-bilgi{background:var(--blue);}
+  .news-headline{font-size:15px;font-weight:600;line-height:1.35;margin-bottom:4px;}
+  .news-summary{font-size:12.5px;font-weight:300;line-height:1.65;color:#3e3e38;margin-bottom:5px;}
+  .news-footer{display:flex;gap:10px;align-items:center;}
+  .news-tag{font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 6px;background:var(--light);color:var(--mid);border-radius:2px;}
+  .news-urgent{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--accent);}
+  .empty-state{text-align:center;padding:52px 0;color:var(--mid);}
+  .empty-big{font-family:'Bebas Neue',sans-serif;font-size:56px;letter-spacing:6px;color:var(--light);display:block;margin-bottom:10px;}
+  .empty-state p{font-size:13.5px;font-style:italic;}
+  footer{border-top:1px solid var(--light);padding:12px 28px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mid);display:flex;justify-content:space-between;}
+  @media(max-width:580px){.masthead{flex-direction:column;gap:6px;}.masthead-meta{text-align:left;}.container{padding:16px 14px 40px;}footer{flex-direction:column;gap:3px;}.setup-row{flex-direction:column;}.control-bar{flex-direction:column;align-items:flex-start;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="masthead">
+    <div class="masthead-left">
+      <div class="masthead-title">İZMİR <span>BÜLTEN</span></div>
+      <div class="masthead-sub">Kentsel Dönüşüm · Şehir Gündemi · Yönetici Özeti</div>
+    </div>
+    <div class="masthead-meta" id="masthead-date">—</div>
+  </div>
+  <div class="tagline">Kentsel Dönüşüm · İmar · Mevzuat · TOKİ · Bakanlık · Altyapı · Şehir Gündemi</div>
+</header>
+
+<main class="container">
+
+  <!-- API KEY KURULUM -->
+  <div class="setup-screen" id="setup-screen">
+    <div class="setup-title">API KEY GEREKLİ</div>
+    <div class="setup-desc">
+      Bülteni çalıştırmak için Anthropic API key'inizi girin.<br>
+      Key bir kez kaydedilir, bir daha sorulmaz.<br>
+      Key almak için: <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>
+    </div>
+    <div class="setup-row">
+      <input class="setup-input" id="key-input" type="password" placeholder="sk-ant-api03-..." autocomplete="off">
+      <button class="setup-btn" onclick="saveKey()">KAYDET</button>
+    </div>
+    <div class="setup-note">⚠ Key yalnızca bu tarayıcıda saklanır, hiçbir yere gönderilmez.</div>
+  </div>
+
+  <!-- KONTROL BARI -->
+  <div class="control-bar" id="control-bar" style="display:none;">
+    <button class="btn btn-primary" id="btn-fetch" onclick="fetchNews()">
+      ⟳ &nbsp;BÜLTENİ GÜNCELLE
+    </button>
+    <button class="btn btn-ghost" onclick="resetKey()">API KEY DEĞİŞTİR</button>
+  </div>
+
+  <div class="error-box" id="error-box"></div>
+  <div class="status-bar" id="status-bar"></div>
+
+  <div id="content">
+    <div class="empty-state">
+      <span class="empty-big">BÜLTEN</span>
+      <p>"BÜLTENİ GÜNCELLE" butonuna basarak başlayın.</p>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <span>İzmir Kentsel Dönüşüm Yönetici Bülteni</span>
+  <span id="footer-time">—</span>
+</footer>
+
+<script>
+const MONTHS=['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+const DAYS=['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+function fmtDate(d){return `${DAYS[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;}
+const now=new Date();
+document.getElementById('masthead-date').textContent=fmtDate(now);
+
+// ── API KEY YÖNETİMİ ────────────────────────────────────────────────────
+function getKey(){return localStorage.getItem('izmir_bulten_key');}
+
+function saveKey(){
+  const val=document.getElementById('key-input').value.trim();
+  if(!val.startsWith('sk-ant')){
+    alert('Geçersiz key formatı. "sk-ant-" ile başlamalı.');
+    return;
+  }
+  localStorage.setItem('izmir_bulten_key',val);
+  showApp();
+}
+
+function resetKey(){
+  if(confirm('API key silinecek, devam?')){
+    localStorage.removeItem('izmir_bulten_key');
+    location.reload();
+  }
+}
+
+function showApp(){
+  document.getElementById('setup-screen').classList.remove('visible');
+  document.getElementById('control-bar').style.display='flex';
+}
+
+// Sayfa yüklenince key kontrolü
+window.addEventListener('DOMContentLoaded',()=>{
+  if(getKey()){
+    showApp();
+  } else {
+    document.getElementById('setup-screen').classList.add('visible');
+  }
+  // Enter ile kaydet
+  document.getElementById('key-input').addEventListener('keydown',e=>{
+    if(e.key==='Enter') saveKey();
+  });
+});
+
+// ── DURUM ────────────────────────────────────────────────────────────────
+function setStatus(msg,loading=false){
+  document.getElementById('status-bar').innerHTML=loading
+    ?`<span class="spinner"></span> ${msg}`:msg;
+}
+function showError(msg){
+  const el=document.getElementById('error-box');
+  el.textContent=msg;
+  el.classList.add('visible');
+}
+function clearError(){
+  document.getElementById('error-box').classList.remove('visible');
+}
+
+// ── HABER ÇEK ───────────────────────────────────────────────────────────
+async function fetchNews(){
+  const key=getKey();
+  if(!key){resetKey();return;}
+
+  const btn=document.getElementById('btn-fetch');
+  btn.disabled=true;
+  clearError();
+  setStatus('Haberler taranıyor…',true);
+
+  const today=fmtDate(now);
+
+  const prompt=`Bugünün tarihi: ${today}. İzmir'de kentsel dönüşüm alanında görev yapan üst düzey bir yönetici için günlük haber bülteni hazırlıyorum. Web'de arama yaparak aşağıdaki konularda güncel haberleri derle.
+
+KAYNAKLAR: izmir.bel.tr, csb.gov.tr, kentseldonusum.gov.tr, toki.gov.tr, emlakkonut.com.tr, İzmir ilçe belediyeleri (Konak/Bayraklı/Bornova/Karşıyaka/Çiğli/Buca/Gaziemir), Çevre Şehircilik İzmir İl Müdürlüğü, yeniasir.com.tr, egehaber.com, dokuzeylul.com, izmirmedya.net, hurriyet.com.tr, sabah.com.tr
+
+KATEGORİLER:
+- kentsel_donus: KD ihaleleri, projeler, riskli alan kararları, hak sahipleri, yıkım-yapım
+- imar: İmar planı değişiklikleri, meclis gündemi, yapı ruhsatı, kamulaştırma
+- mevzuat: 6306 güncellemeleri, kira yardımı, EPP, taşınma desteği
+- kurum: TOKİ, Emlak Konut, Kentsel Dönüşüm Başkanlığı, Bakanlık İl Müdürlüğü
+- altyapi: Metro, İZBAN, yol, su, deprem altyapısı
+- sehir: Büyükşehir meclis kararları, ilçe belediyeleri önemli gelişmeler
+
+KURAL: YALNIZCA aşağıdaki JSON formatını döndür, başka HİÇBİR şey yazma:
+{"ozet":"2 cümle yönetici özeti","haberler":[{"kategori":"kentsel_donus|imar|mevzuat|kurum|altyapi|sehir","baslik":"Başlık","ozet":"1-2 cümle.","oncelik":"yuksek|normal|bilgi","etiket":"Kısa etiket"}]}
+En az 8, en fazla 14 haber. Bugün yoksa son 3 günü kapsayabilirsin.`;
+
+  try {
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:2000,
+        tools:[{type:'web_search_20250305',name:'web_search'}],
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+
+    if(!res.ok){
+      const err=await res.json().catch(()=>({}));
+      if(res.status===401){
+        showError('⚠ API key geçersiz. Lütfen "API KEY DEĞİŞTİR" butonuna basarak yeni key girin.');
+      } else {
+        showError(`⚠ API hatası (${res.status}): ${err?.error?.message||'Bilinmeyen hata'}`);
+      }
+      setStatus('');
+      btn.disabled=false;
+      return;
+    }
+
+    const data=await res.json();
+
+    // Tüm text bloklarını birleştir
+    const fullText=data.content
+      .filter(b=>b.type==='text')
+      .map(b=>b.text)
+      .join('');
+
+    const m=fullText.match(/\{[\s\S]*"haberler"[\s\S]*\}/);
+    if(!m) throw new Error('JSON bulunamadı — model beklenmedik format döndürdü');
+
+    const result=JSON.parse(m[0]);
+    if(!result.haberler||!result.haberler.length) throw new Error('Haber listesi boş');
+
+    renderNews(result);
+    setStatus(`✓ ${result.haberler.length} haber yüklendi — ${now.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})}`);
+
+  } catch(err){
+    showError(`⚠ Hata: ${err.message}`);
+    setStatus('');
+  }
+
+  btn.disabled=false;
+  btn.innerHTML='⟳ &nbsp;YENİLE';
+}
+
+// ── RENDER ───────────────────────────────────────────────────────────────
+const CAT={
+  kentsel_donus:{label:'Kentsel Dönüşüm & Projeler',cls:'c-donus'},
+  imar:{label:'İmar, Planlama & Meclis',cls:'c-imar'},
+  mevzuat:{label:'Mevzuat, Destekler & 6306',cls:'c-mevzuat'},
+  kurum:{label:'Resmi Kurum Haberleri',cls:'c-kurum'},
+  altyapi:{label:'Altyapı & Ulaşım',cls:'c-altyapi'},
+  sehir:{label:'Şehir Gündemi',cls:'c-sehir'}
+};
+const ORDER=['kentsel_donus','imar','mevzuat','kurum','altyapi','sehir'];
+
+function renderNews(data){
+  const grouped={};ORDER.forEach(c=>grouped[c]=[]);
+  for(const h of data.haberler){
+    const c=(h.kategori in grouped)?h.kategori:'sehir';
+    grouped[c].push(h);
+  }
+  let html=`
+    <div class="edition-header">
+      <div class="edition-date">${fmtDate(now)}</div>
+      <div class="edition-count">${data.haberler.length} gelişme</div>
+    </div>
+    <div class="summary-box">
+      <h3>GÜNÜN ÖZETİ</h3>
+      <p>${data.ozet}</p>
+    </div>`;
+  let delay=0;
+  for(const cat of ORDER){
+    const items=grouped[cat];
+    if(!items.length) continue;
+    const{label,cls}=CAT[cat];
+    html+=`<div class="category"><div class="cat-label ${cls}">${label}</div><div class="news-list">`;
+    for(const item of items){
+      const bc=item.oncelik==='yuksek'?'b-urgent':item.oncelik==='bilgi'?'b-bilgi':'b-normal';
+      html+=`
+        <div class="news-item" style="animation-delay:${delay}ms">
+          <div class="${bc}"></div>
+          <div>
+            <div class="news-headline">${item.baslik}</div>
+            <div class="news-summary">${item.ozet}</div>
+            <div class="news-footer">
+              <span class="news-tag">${item.etiket}</span>
+              ${item.oncelik==='yuksek'?'<span class="news-urgent">● Önemli</span>':''}
+            </div>
+          </div>
+        </div>`;
+      delay+=50;
+    }
+    html+=`</div></div>`;
+  }
+  document.getElementById('content').innerHTML=html;
+  document.getElementById('footer-time').textContent=
+    `Son güncelleme: ${now.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})}`;
+}
+</script>
+</body>
+</html>
